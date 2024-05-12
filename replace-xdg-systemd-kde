@@ -15,12 +15,10 @@
 # The services are placed in the /etc/systemd/user directory
 # This means unprivileged users can manage them individually
 # They can be different per user
-
 # Documentation
 # https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html
 # https://opensource.com/article/20/5/systemd-startup
 # https://manpages.debian.org/bookworm/systemd/systemd.unit.5.en.html
-# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/using_systemd_unit_files_to_customize_and_optimize_your_system/index
 
 #
 #
@@ -629,18 +627,17 @@ EOF
 #
 # Enable the services
 # enabled:
-# 	- essential
-#		- Virtualization specific, for testing
+#	- essential
+#	- Virtualization specific, for testing
 # not enabled:
-#		- accessibility
-#		- legacy support
-#		- annoyances
-#		- strange duplicates
+#	- accessibility
+#	- legacy support
+#	- annoyances
+#	- strange duplicates
 #
 #
 
 systemctl --user daemon-reload
-
 systemctl enable --user --now at-spi-dbus-bus.service
 # systemctl enable --user --now baloo.service
 # systemctl enable --user --now discover-notifier.service
@@ -672,4 +669,4 @@ systemctl enable --user --now xdg-user-dirs.service
 #
 #
 
-# systemctl status foo.service
+# systemctl status x.service
