@@ -1,0 +1,675 @@
+#!/bin/bash
+
+################################################
+# ################ WARNING #####################
+################################################
+
+# EXPERIMENTAL, MAY CAUSE BREAKAGES
+
+# Neuter xdg autostart entries and convert them to systemd units.
+# (the autostart entries are not removed but replaced with empty files)
+# simple "oneshot" systemd services are placed instead
+# the services should state all dependencies
+# also what other services depend on them
+
+# The services are placed in the /etc/systemd/user directory
+# This means unprivileged users can manage them individually
+# They can be different per user
+
+# Documentation
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html
+# https://opensource.com/article/20/5/systemd-startup
+# https://manpages.debian.org/bookworm/systemd/systemd.unit.5.en.html
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/using_systemd_unit_files_to_customize_and_optimize_your_system/index
+
+#
+#
+# replace at-spi-dbus-bus
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/at-spi-dbus-bus.desktop
+
+sudo cat > /etc/systemd/user/at-spi-dbus-bus.service <<EOF
+[Unit]
+Description=Start at-spi dbus bus
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/at-spi-bus-launcher --launch-immediately
+
+[Install]
+Alias=at-spi-dbus-bus.service
+EOF
+
+#
+#
+# replace baloo_file
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/baloo_file.desktop
+
+sudo cat > /etc/systemd/user/baloo.service <<EOF
+# runs in the background and speeds up searches throug index
+
+[Unit]
+Description=Start baloo file indexer
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/kf6/baloo_file
+
+[Install]
+Alias=baloo.service
+EOF
+
+#
+#
+# replace geoclue demo agent
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/geoclue-demo-agent.desktop
+
+sudo cat > /etc/systemd/user/geoclue-demo-agent.service <<EOF
+# location provider through IP address
+
+[Unit]
+Description=Start the Geoclue Demo Agent
+Wants=multi-user.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/geoclue-2.0/demos/agent
+
+[Install]
+Alias=geoclue.service
+EOF
+
+#
+#
+# replace GMenuDBusMenuProxy
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/gmenudbusmenuproxy.desktop
+
+sudo cat > /etc/systemd/user/gmenudbusmenuproxy.service <<EOF
+# make GTK apps talk to the nondefault "global menu" feature
+# displaying a macOS-like menu in the panel
+# https://blog.broulik.de/2018/03/gtk-global-menu/
+#
+# this is NOT essential for anything
+#
+[Unit]
+Description=Start proxy from GTK apps to the global menu
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gmenudbusmenuproxy
+
+[Install]
+Alias=gmenudbusmenuproxy.service
+EOF
+
+#
+#
+# replace gnome-keyring-pkcs11
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/gnome-keyring-pkcs11.desktop
+
+sudo cat > /etc/systemd/user/gnome-keyring-pkcs11.service <<EOF
+# public/private key cryptography interface (as far as I understood)
+# PKCS#11
+# https://wiki.gnome.org/Projects/GnomeKeyring/Architecture
+
+[Unit]
+Description=Start GNOME-keyring cryptography interface
+Wants=multi-user.target
+# gui only?
+# Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gnome-keyring-daemon --start --components=pkcs11
+
+[Install]
+Alias=gnome-keyring-pkcs11.service
+EOF
+
+#
+#
+# replace gnome-keyring-secrets
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/gnome-keyring-secrets.desktop
+
+sudo cat > /etc/systemd/user/gnome-keyring-secrets.service <<EOF
+# https://wiki.gnome.org/Projects/GnomeKeyring/Architecture
+
+[Unit]
+Description=Start GNOME-Keyring secret service
+Wants=multi-user.target
+# is this GUI only?
+# Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gnome-keyring-daemon --start --components=secrets
+
+[Install]
+Alias=gnome-keyring-secrets.service
+EOF
+
+#
+#
+# replace gnome-keyring-ssh
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/gnome-keyring-ssh.desktop
+
+sudo cat > /etc/systemd/user/gnome-keyring-ssh.service <<EOF
+# https://wiki.gnome.org/Projects/GnomeKeyring/Architecture
+
+[Unit]
+Description=Start GNOME-Keyring ssh integration
+Wants=multi-user.target
+# likely needs network connection?
+# Wants=network-online.target
+# otherwise general presence of network
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gnome-keyring-daemon --start --components=ssh
+
+[Install]
+Alias=gnome-keyring-ssh.service
+EOF
+
+#
+#
+# replace kaccess
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/kaccess.desktop
+
+sudo cat > /etc/systemd/user/org.kde.kaccess.service <<EOF
+# can be disabled
+
+[Unit]
+Description=Start Accessibility Service
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/kaccess
+
+[Install]
+Alias=kaccess.service
+EOF
+
+#
+#
+# replace kglobalacceld
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/kglobalacceld.desktop
+
+sudo cat > /etc/systemd/user/org.kde.kglobalacceld.service <<EOF
+# keyboard shortcut daemon
+# when not used can be disabled, but there are many presets
+
+[Unit]
+Description=Start Keyboard shortcuts daemon
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/kglobalacceld
+
+[Install]
+Alias=kglobalacceld.service
+EOF
+
+#
+#
+# replace orca-autostart
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/orca-autostart.desktop
+
+sudo cat > /etc/systemd/user/orca-autostart.service <<EOF
+# screenreader
+# can be disabled
+
+[Unit]
+Description=Start Orca Screenreader
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/orca
+
+[Install]
+Alias=orca-autostart.service
+EOF
+
+#
+#
+# replace kde connect
+#
+#
+
+# replace with empty entry (attempt to avoid distro updates reinstalling it)
+sudo echo "" > /etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
+
+sudo cat > /etc/systemd/user/org.kde.kdeconnect.service <<EOF
+# program for connection to a phone
+
+[Unit]
+Description=Start the KDEConnect Daemon
+Wants=graphical.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/kdeconnectd
+
+[Install]
+Alias=kdeconnect.service
+EOF
+
+
+#
+#
+# replace discover notifier
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/org.kde.discover.notifier.desktop
+
+sudo cat > /etc/systemd/user/org.kde.discover.notifier.service <<EOF
+# notification daemon about package] updates
+
+[Unit]
+Description=Start the Discover Notifier
+Wants=graphical.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/DiscoverNotifier
+
+[Install]
+Alias=discover-notifier.service
+EOF
+
+#
+#
+# replace plasmashell
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/org.kde.plasmashell.desktop
+
+sudo cat > /etc/systemd/user/org.kde.plasmashell.service <<EOF
+[Unit]
+Description=Start the Plasmashell
+# is this SDDM or plasma?
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/plasmashell
+
+[Install]
+Alias=plasmashell.service
+WantedBy=kaccess.service
+WantedBy=kglobalacceld.service
+WantedBy=kdeconnect.service
+WantedBy=orca-autostart.service
+WantedBy=gmenudbusmenuproxy.service
+WantedBy=discover-notifier.service
+WantedBy=polkit-kde-authentication-agent.service
+EOF
+
+#
+#
+# replace org.kde.plasma-fallback-session-restore
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/org.kde.plasma-fallback-session-restore.desktop
+
+sudo cat > /etc/systemd/user/org.kde.plasma-fallback-session-restore.service <<EOF
+[Unit]
+Description=Start the Session Restore
+#Wants=multi-user.target
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/plasma-fallback-session-restore
+
+[Install]
+Alias=plasma-fallback-session-restore.service
+EOF
+
+#
+#
+# replace xwaylandvideobridge
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/xwaylandvideobridge.desktop
+
+sudo cat > /etc/systemd/user/xwaylandvideobridge.service <<EOF
+# allows X11 apps to capture the screen by emulating a webcam
+
+[Unit]
+Description=Start the XWayland Videobridge
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+# only continue if it is a wayland session
+ExecStartPre=/bin/sh -c '[-n "$WAYLAND_DISPLAY"]'
+ExecStart=/usr/bin/xwaylandvideobridge
+
+[Install]
+Alias=xwaylandvideobridge.service
+EOF
+
+#
+#
+# replace pam_kwallet_init
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/pam_kwallet_init.desktop
+
+sudo cat > /etc/systemd/user/pam_kwallet_init.service <<EOF
+# unlock KWallet when logging in through displaymanager
+
+[Unit]
+Description=Start the PAM Kwallet socket
+# start before GUI login, right?
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/pam_kwallet_init
+
+[Install]
+Alias=pam_kwallet_init.service
+EOF
+
+#
+#
+# replace polkit-kde-authentication-agent-1
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/polkit-kde-authentication-agent-1.desktop
+
+sudo cat > /etc/systemd/user/polkit-kde-authentication-agent-1.service <<EOF
+[Unit]
+Description=Start the Polkit authentification agent
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/kf6/polkit-kde-authentication-agent-1
+
+[Install]
+Alias=polkit-kde-authentication-agent.service
+EOF
+
+#
+#
+# replace powerdevil
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/powerdevil.desktop
+
+sudo cat > /etc/systemd/user/powerdevil.service <<EOF
+# battery, display and power management and notification
+
+[Unit]
+Description=Start Power Management
+# does it work with no GUI?
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/org_kde_powerdevil
+
+[Install]
+Alias=powerdevil.service
+EOF
+
+#
+#
+# replace spice-vdagent
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/spice-vdagent.desktop
+
+sudo cat > /etc/systemd/user/spice-vdagent.service <<EOF
+[Unit]
+Description=Start Agent for SPICE guests
+Wants=multi-user.target
+#Wants=graphical.target
+
+[Service]
+Type=oneshot
+# test if it runs in a QEMU VM
+ExecStartPre=/bin/sh -d '[-e "/run/qemu-vm"]'
+ExecStart=/usr/bin/spice-vdagent
+
+[Install]
+Alias=spice-vdagent.service
+EOF
+
+#
+#
+# replace vboxclient
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/vboxclient.desktop
+
+sudo cat > /etc/systemd/user/vboxclient.service <<EOF
+[Unit]
+Description=Start VirtualBox Client Session Services
+Wants=multi-user.target
+#Wants=graphical.target
+
+[Service]
+Type=oneshot
+# test if it uses VirtualBox (case-insensitive)
+ExecStartPre=/bin/sh -c 'grep -qi "VirtualBox" /sys/devices/virtual/dmi/id/product_name'
+ExecStart=/usr/bin/VBoxClient-all
+
+[Install]
+Alias=vboxclient.service
+EOF
+
+#
+#
+# replace vmware-user
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/vmware-user.desktop
+
+sudo cat > /etc/systemd/user/vmware-user.service <<EOF
+[Unit]
+Description=Start VMWare Client Agent
+Wants=multi-user.target
+#Wants=graphical.target
+
+[Service]
+Type=oneshot
+# test if it uses vmware (case-insensitive)
+ExecStartPre=/bin/sh -c 'grep -qi "vmware" /sys/devices/virtual/dmi/id/product_name'
+ExecStart=/usr/bin/vmware-user-suid-wrapper
+
+[Install]
+Alias=vmware-user.service
+EOF
+
+#
+#
+# replace xdg-user-dirs
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/xdg-user-dirs.desktop
+
+sudo cat > /etc/systemd/user/xdg-user-dirs.service <<EOF
+# https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
+
+[Unit]
+Description=Update user directories
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/xdg-user-dirs-update
+
+[Install]
+Alias=xdg-user-dirs.service
+EOF
+
+#
+#
+# replace xdg-user-dirs-kde
+# ??? Same as above?
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/xdg-user-dirs-kde.desktop
+
+sudo cat > /etc/systemd/user/xdg-user-dirs-kde.service <<EOF
+[Unit]
+Description=Update user directories
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/xdg-user-dirs-update
+
+[Install]
+Alias=xdg-user-dirs-kde.service
+EOF
+
+#
+#
+# replace XembedSniProxy
+#
+#
+
+# replace with empty entry
+sudo echo "" > /etc/xdg/autostart/xembedsniproxy.desktop
+
+sudo cat > /etc/systemd/user/xembedsniproxy.service <<EOF
+# Proxy for legacy xembed to StatusNotifierIcon (SNI)
+# https://phabricator.kde.org/source/plasma-workspace/browse/apol%252Fkdedkcmtosession/xembed-sni-proxy/
+
+[Unit]
+Description=Start legacy System Tray Proxy
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/xembedsniproxy
+
+[Install]
+Alias=xembedsniproxy.service
+EOF
+
+#
+#
+# Enable the services
+# enabled:
+# 	- essential
+#		- Virtualization specific, for testing
+# not enabled:
+#		- accessibility
+#		- legacy support
+#		- annoyances
+#		- strange duplicates
+#
+#
+
+systemctl --user daemon-reload
+
+systemctl enable --user --now at-spi-dbus-bus.service
+# systemctl enable --user --now baloo.service
+# systemctl enable --user --now discover-notifier.service
+# systemctl enable --user --now geoclue-demo-agent.service
+# systemctl enable --user --now gmenudbusmenuproxy.service
+systemctl enable --user --now gnome-keyring-pkcs11.service
+systemctl enable --user --now gnome-keyring-secrets.service
+systemctl enable --user --now gnome-keyring-ssh.service
+# systemctl enable --user --now kaccess.service
+# systemctl enable --user --now kdeconnect.service
+systemctl enable --user --now kglobalacceld.service
+# systemctl enable --user --now orca-autostart.service
+systemctl enable --user --now pam_kwallet_init.service
+systemctl enable --user --now plasma-fallback-session-restore.service
+systemctl enable --user --now plasmashell.service
+systemctl enable --user --now polkit-kde-authentication-agent.service
+systemctl enable --user --now powerdevil.service
+systemctl enable --user --now spice-vdagent.service
+systemctl enable --user --now vboxclient.service
+systemctl enable --user --now vmware-user.service
+# systemctl enable --user --now xdg-user-dirs-kde.service
+systemctl enable --user --now xdg-user-dirs.service
+# systemctl enable --user --now xembedsniproxy.service
+# systemctl enable --user --now xwaylandvideobridge.service
+
+#
+#
+# verify if they run
+#
+#
+
+# systemctl status foo.service
